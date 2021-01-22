@@ -1,0 +1,197 @@
+html, body {
+  font-family: "Roboto", "Times New Roman", Times, serif;
+  font-weight: 300;
+  line-height: 1.4;
+  font-size: 16px;
+  color: #000000;
+  background-color: #ECECEC;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* === MAIN CONTAINER === */
+
+body div.main-container {
+  background-color: #FFFFFF;
+  padding-bottom: 50px;
+  padding-top: 20px;
+  box-shadow: 0 2px 5px #808080;
+  margin-top: 40px;
+  margin-bottom: 40px;
+}
+
+div.toc-content {
+  padding: 0 15px 0 30px;
+}
+
+/* === MENU === */
+
+#TOC {
+  border-radius: 0;
+  border-width: 0;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #00545D;
+}
+
+#TOC .active {
+  background-color: #168FA7;
+  color: #FFFFFF;
+}
+
+#TOC li {
+  border-bottom: 2px solid #ECECEC;
+  height: 40px;
+  line-height: 32px;
+}
+
+#TOC > ul:last-child > li:last-child {
+  border: 0;
+}
+
+/* === HEADERS === */
+
+h1, h2, h3 {
+  font-family: "Roboto", "Times New Roman", Times, serif;
+  font-weight: 700;
+  color: #00545D;
+}
+
+h4, h5, h6 {
+  font-weight: 500;
+  color: #000000;
+}
+
+h1 { font-size: 2.25rem; }
+
+h2 { font-size: 1.875rem; }
+
+h3 { font-size: 1.5rem; }
+
+h4 { font-size: 1.25rem; }
+
+h5 { font-size: 1.125rem; }
+
+h6 { font-size: 1rem; }
+
+h4.author > em, h4.date > em {
+  font-family: "Roboto", "Times New Roman", Times, serif;
+  font-style: normal;
+  font-weight: 400;
+  color: #858587;
+}
+
+/* === LISTS === */
+
+ul:not([class]) {
+  font-size: 1rem;
+  list-style: none;
+}
+
+ul:not([class]) li:before {
+  color: #EB6E08;
+  content: "\2022";
+  margin-left: -0.75em;
+  position: relative;
+  top: 0.125em;
+  line-height: 0;
+  padding-right: 0.25em;
+  font-size: 1.5em;
+}
+
+/* === LINKS === */
+
+a {
+  color: #168FA7;
+}
+
+/* === TABS === */
+
+ul.nav {
+  font-weight: 500;
+}
+
+ul.nav a {
+  color: #168FA7;
+}
+
+/* === TABLES === */
+
+  /* = pagedtable = */
+
+.pagedtable-wrapper {
+  font-size: 1rem;
+  border-width: 0;
+}
+
+.pagedtable-wrapper .pagedtable {
+  padding: 0;
+}
+
+.pagedtable-wrapper a {
+  color: #168FA7;
+}
+
+.pagedtable-wrapper a.pagedtable-index-nav-disabled {
+  color: #999;
+}
+
+.pagedtable-wrapper a.pagedtable-index-current {
+  color: #333;
+}
+
+  /* = all = */
+
+table thead {
+  font-size: 1.125em;
+  color: #FFFFFF;
+  background-color: #00545D;
+}
+
+table tr.odd {
+  background-color: #EFF0F0;
+}
+
+table tr.even {
+  background-color: #DFE0E1;
+}
+
+/* === BUTTONS & INPUTS & SELECTS === */
+
+button, input {
+  font-size: 1rem;
+  border-radius: 0.25em;
+  margin-bottom: 0.625em;
+  padding: 0.625em;
+  outline: none;
+}
+
+input[type=text], input[type=number], select {
+  font-weight: 300;
+  border: 1px solid #CCCCCC;
+  background-color: #FFFFFF;
+  min-width: 12em;
+}
+
+button, input[type=submit] {
+  font-weight: 900;
+  border: none;
+  padding: 0.625em 1.875em;
+  background-color: #EB6E08;
+  color: #FFFFFF;
+  cursor: pointer;
+  min-width: inherit;
+}
+
+button:hover, input[type=submit]:hover {
+  background-color: #f29d63;
+}
+
+/* GRAPHS & IMAGES & MEDIA */
+
+img, iframe {
+  display: block;
+  margin: 0 auto;
+}

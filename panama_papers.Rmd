@@ -1,0 +1,104 @@
+---
+title: "Panama Papers"
+author: "Mark Zwart"
+date: "1/13/2021"
+output:
+  html_document:
+    css: custom-release.css
+    df_print: paged
+    number_sections: no
+    toc: yes
+    toc_float: yes
+editor_options:
+  chunk_output_type: inline
+---
+
+```{r Load data, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(dplyr)
+library(magrittr)
+library(feather)
+library(stringr)
+library(graydon.package)
+library(yaml)
+library(igraph)
+library(visNetwork)
+if (!require("DT")) install.packages('DT')
+
+source("load_panama_data.R")
+source("plot_graph_functions.R")
+invisible(
+  list2env(
+    load_panama_papers(read_raw_data = FALSE),
+    .GlobalEnv
+  ))
+```
+
+
+Although the title doesn't suggest it, but the data is about more than just the Panama Papers:
+
+* [Bahamas Leaks](https://en.wikipedia.org/wiki/Bahamas_Leaks)
+* [Offshore Leaks](https://en.wikipedia.org/wiki/Offshore_Leaks)
+* [Panama Papers](https://en.wikipedia.org/wiki/Panama_Papers)
+* [Paradise Papers](https://en.wikipedia.org/wiki/Paradise_Papers)
+
+Data source: [https://offshoreleaks.icij.org/pages/database](https://offshoreleaks.icij.org/pages/database)
+
+
+View the number of entities (Companies, officers, intermediaries addresses) per graph
+
+```{r Show summary table of graph, echo=FALSE}
+df_show <- df_graph_summaries %>% 
+  filter((qty_belgian > 0 | qty_dutch > 0 | qty_uk > 0) & qty_nodes < 400) %>% 
+  arrange(desc(qty_dutch + qty_belgian + qty_uk)) %>% 
+  select(id_graph,
+         `Source` = name_source,
+         `# entities` = qty_nodes,
+         `# companies` = qty_companies,
+         `# officers` = qty_officers,
+         `# intermediaries` = qty_intermediaries,
+         `# Dutch entities` = qty_dutch,
+         `# Belgian entities` = qty_belgian,
+         `# UK entities` = qty_uk
+         ) 
+datatable(df_show)
+```
+
+
+Selecting the network:
+```{r Selecting the network}
+id_graph <- 27347	
+graph_leak <- lst_graphs[[id_graph]]
+txt_source <- as_data_frame(graph_leak, what = "vertices")$id_source[1]
+```
+
+The source of the selected network is the *`r txt_source`*
+
+Create visualisation of one graph by setting the variable *id_graph*
+```{r Display single network, echo=FALSE}
+plot_leaks_graph(graph_leak)
+```
+
+```{r Select addresses, echo=FALSE}
+df_addresses <- df_nodes %>% 
+  filter(is_address == 1) %>% 
+  filter(is_belgian | is_dutch | is_UK) %>% 
+  select(id_node, id_source, address, countries) %>% 
+  inner_join(df_edges, by = c("id_node"="to")) %>% 
+  mutate(from = as.character(from)) %>% 
+  inner_join(df_nodes, by = c("from"="id_node")) %>% 
+  select(id_source = id_source.x,
+         address = address.x,
+         countries.x,
+         valid_until = valid_until.x,
+         incorporation_date,
+         company_type,
+         status,
+         is_company,
+         is_intermediary,
+         is_officer)
+
+write_csv2(df_addresses, "/data/panama_papers/addresses.csv")
+```
+

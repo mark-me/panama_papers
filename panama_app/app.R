@@ -1,7 +1,6 @@
 require(shiny)
 require(visNetwork)
 library(tidyverse)
-library(magrittr)
 library(feather)
 library(igraph)
 library(DT)

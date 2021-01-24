@@ -1,5 +1,7 @@
 plot_leaks_graph <- function(graph){
 
+  col_graydon <- c("red", "orange", "blue",  "darkgreen", "eggplant" )
+  
   lst_image_urls <- read_yaml("config_graph.yml")
   
   df_nodes_vis <- as_data_frame(graph, what = "vertices") %>% 

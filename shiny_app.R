@@ -26,6 +26,15 @@ server <- function(input, output) {
                                            `# UK` = qty_uk), 
                                   selection = 'single', rownames = FALSE)
   
+  output$selected_network <- reactive({
+    paste0("Selected network: ", 
+           ifelse(is.null(input$df_summaries_rows_selected),
+                  "None selected",
+                  paste0(df_graph_summaries[input$df_summaries_rows_selected, 1], ") ", 
+                         df_graph_summaries[input$df_summaries_rows_selected, 2]))
+                                        )
+  })
+  
   # Showing a network of entities
   output$network <- renderVisNetwork({
     id_graph <- df_graph_summaries[input$df_summaries_rows_selected, 1]
@@ -36,19 +45,24 @@ server <- function(input, output) {
 
 ui <- fluidPage(
   
-  titlePanel("Panama Papers"),
+  titlePanel(
+    fluidRow(
+      column(1, img(width = 64, height = 64, src = "panamapapers.png")),
+      column(8, "Panama papers"), 
+      column(3, img(height = 64, width = 64, src = "https://cadran-analytics.nl/wp-content/uploads/2018/10/shiny.png"))
+    )
+  ),
   
   sidebarLayout(
     
     sidebarPanel(
-      img("panamapapers.png"),
       h3("Available structures"),
       dataTableOutput("df_summaries")
     ),
     
     mainPanel(
-      h3("Selected network"),
-      visNetworkOutput("network")
+      textOutput("selected_network"),
+      visNetworkOutput("network", height = "800px", width = "100%")
     )
   )
   
@@ -140,7 +154,7 @@ plot_network <- function(id_graph){
   df_edges_vis %<>% filter(!to %in% id_country_superfluous)
   
   visNetwork(df_nodes_vis, df_edges_vis,
-             height = "800px", width = "100%") %>% 
+             height = "1080px") %>% 
     visNodes(color = list(background = "lightblue", 
                           border = "darkblue",
                           highlight = "yellow"),

@@ -1,29 +1,32 @@
+library(yaml)
+config <- read_yaml("config.yml")
+
 load_panama_papers <- function(read_raw_data = TRUE, only_graph_data = TRUE){
 
   if(read_raw_data){
 
     df_nodes <- load_nodes()
     df_edges <- load_edges(df_nodes)
-    df_nodes <- add_country_nodes(df_nodes) # Add countries as seperate nodes
+    df_nodes <- add_country_nodes(df_nodes) # Add countries as separate nodes
     df_edges <- add_country_edges(df_edges, df_nodes) # Connect country nodes to their originating nodes
   
-    write_feather(df_nodes, "/data/panama_papers/nodes.feather")
-    write_feather(df_edges, "/data/panama_papers/edges.feather") 
+    write_feather(df_nodes, paste0(config$dir_data, "nodes.feather"))
+    write_feather(df_edges, paste0(config$dir_data, "edges.feather"))
 
     # Create list of graphs and a data frame with their summaries 
     lst_output <- create_graphs(df_nodes, df_edges)
     lst_graphs <- lst_output$lst_graphs
     df_graph_summaries <- lst_output$df_graph_summaries
-    write_rds(lst_graphs, "/data/panama_papers/list_graphs.Rds")  
-    write_feather(df_graph_summaries, "/data/panama_papers/graph_summaries.feather") 
+    write_rds(lst_graphs, paste0(config$dir_data, "list_graphs.Rds")  )
+    write_feather(df_graph_summaries, paste0(config$dir_data, "graph_summaries.feather"))
     
   } else {
     
-    df_nodes <- read_feather("/data/panama_papers/nodes.feather") 
-    df_edges <- read_feather("/data/panama_papers/edges.feather")
+    df_nodes <- read_feather(paste0(config$dir_data, "nodes.feather"))
+    df_edges <- read_feather(paste0(config$dir_data, "edges.feather"))
     
-    lst_graphs <- read_rds("/data/panama_papers/list_graphs.Rds")  
-    df_graph_summaries <- read_feather("/data/panama_papers/graph_summaries.feather") 
+    lst_graphs <- read_rds(paste0(config$dir_data, "list_graphs.Rds"))
+    df_graph_summaries <- read_feather(paste0(config$dir_data, "graph_summaries.feather"))
     
   }
   
@@ -53,7 +56,7 @@ load_nodes <- function(){
                  "offshore_leaks.nodes.address.csv",
                  "panama_papers.nodes.address.csv",
                  "paradise_papers.nodes.address.csv")
-  vec_files <- paste0("/data/panama_papers/", vec_files)
+  vec_files <- paste0(config$dir_data, vec_files)
   df_address <- merge_files(vec_files)
   df_address %<>% mutate(type_node = "address")
   
@@ -62,7 +65,7 @@ load_nodes <- function(){
                  "offshore_leaks.nodes.entity.csv", 
                  "panama_papers.nodes.entity.csv", 
                  "paradise_papers.nodes.entity.csv")
-  vec_files <- paste0("/data/panama_papers/", vec_files)
+  vec_files <- paste0(config$dir_data, vec_files)
   df_entity <- merge_files(vec_files)
   df_entity %<>% mutate(type_node = "company")
   
@@ -71,7 +74,7 @@ load_nodes <- function(){
                  "offshore_leaks.nodes.intermediary.csv", 
                  "panama_papers.nodes.intermediary.csv", 
                  "paradise_papers.nodes.intermediary.csv")
-  vec_files <- paste0("/data/panama_papers/", vec_files)
+  vec_files <- paste0(config$dir_data, vec_files)
   df_intermediaries <- merge_files(vec_files)
   df_intermediaries %<>% mutate(type_node = "intermediaries")
   
@@ -80,7 +83,7 @@ load_nodes <- function(){
                  "offshore_leaks.nodes.officer.csv", 
                  "panama_papers.nodes.officer.csv",
                  "paradise_papers.nodes.officer.csv")
-  vec_files <- paste0("/data/panama_papers/", vec_files)
+  vec_files <- paste0(config$dir_data, vec_files)
   df_officers <- merge_files(vec_files)
   df_officers %<>% mutate(type_node = "officers")
   
@@ -124,7 +127,7 @@ load_edges <- function(df_nodes){
                  "offshore_leaks.edges.csv",
                  "panama_papers.edges.csv",
                  "paradise_papers.edges.csv")
-  vec_files <- paste0("/data/panama_papers/", vec_files)
+  vec_files <- paste0(config$dir_data, vec_files)
   df_edges <- merge_files(vec_files)
   
   rm(vec_files)
@@ -148,7 +151,7 @@ load_edges <- function(df_nodes){
   df_invalid_edges <- df_edges %>% 
     filter(!from %in% df_nodes$id_node | !to %in% df_nodes$id_node)
   
-  write_feather(df_invalid_edges, "/data/panama_papers/edges_invalid.feather") 
+  write_feather(df_invalid_edges, paste0(config$dir_data, "edges_invalid.feather"))
   
   df_edges %<>% 
     filter(from %in% df_nodes$id_node & to %in% df_nodes$id_node)
@@ -300,4 +303,11 @@ create_graphs <- function(df_nodes, df_edges){
                        df_graph_summaries = df_graph_summaries)
   
   return(list_objects)  
+}
+
+write_decomposed_graphs <- function(lst_graphs){
+  
+  
+  lapply(lst_graphs)
+  
 }

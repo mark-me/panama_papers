@@ -6,8 +6,8 @@ library(feather)
 library(igraph)
 library(DT)
 library(DBI)
-source("load_panama_data.R")
-source("plot_graph_functions.R")
+#source("load_panama_data.R")
+#source("plot_graph_functions.R")
 
 
 server <- function(input, output) {
@@ -97,7 +97,7 @@ ui <- fluidPage(
                   tabPanel("Table",
                            downloadButton("downloadData", "Download..."),
                            br(),
-                           dataTableOutput("df_network_nodes")
+                           DTOutput("df_network_nodes")
                            )
                   )
       )
@@ -128,8 +128,8 @@ prettify_nodes <- function(df_nodes){
   
   df_nodes_vis <- df_nodes %>% 
     rename(id = name) %>% 
-    mutate(label = ifelse(is_address == 1, "", name_node),
-           label = ifelse(is_country, country, name_node),
+    mutate(label = ifelse(is_country, country, name_node),
+           label = ifelse(is_address == 1, "", name_node),
            title = ifelse(is_address == 1, address, NA),
            title = ifelse(is_company == 1, paste(paste0("Type: ", company_type),
                                                  paste0("Status:", status),
@@ -153,7 +153,6 @@ prettify_nodes <- function(df_nodes){
            group = ifelse(is_company == 1, "Companies", group),
            group = ifelse(is_intermediary == 1, "Intermediaries", group))
   
-  browser()
   return(df_nodes_vis)
 }
 
@@ -161,9 +160,7 @@ prettify_edges <- function(df_edges){
   
   df_edges_vis <- df_edges %>% 
     mutate(arrows = ifelse(type_edge %in% c("located_in", "same_as", "same_company_as", "similar_company_as"), "", "to"),
-           title = ifelse(type_edge == "same_address_as", "Same address", ""),
-           title = ifelse(type_edge == "same_company_as", "Same company", "")
-    ) %>% 
+           title = type_edge) %>% 
     mutate(color = "black") %>% 
     mutate(dashes = type_edge %in% c("same_company_as", "same_address_as", "similar_company_as", "same_name_as", "same_id_as",
                                      "same_intermediary_as", "same_as") )

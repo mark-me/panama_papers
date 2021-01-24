@@ -6,6 +6,9 @@ library(feather)
 library(igraph)
 library(DT)
 library(DBI)
+library(yaml)
+
+config <- read_yaml("config.yml")
 
 server <- function(input, output) {
   

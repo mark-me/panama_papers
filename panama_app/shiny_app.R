@@ -6,9 +6,6 @@ library(feather)
 library(igraph)
 library(DT)
 library(DBI)
-#source("load_panama_data.R")
-#source("plot_graph_functions.R")
-
 
 server <- function(input, output) {
   

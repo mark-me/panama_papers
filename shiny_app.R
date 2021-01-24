@@ -41,11 +41,13 @@ ui <- fluidPage(
   sidebarLayout(
     
     sidebarPanel(
+      img("panamapapers.png"),
       h3("Available structures"),
       dataTableOutput("df_summaries")
     ),
     
     mainPanel(
+      h3("Selected network"),
       visNetworkOutput("network")
     )
   )
@@ -72,7 +74,7 @@ get_graph_data <- function(id_graph){
 prettify_nodes <- function(df_nodes){
   
   lst_image_urls <- read_yaml("config_graph.yml")
-  col_graydon <- c("red", "orange", "blue",  "darkgreen", "eggplant" )
+  col_graydon <- c("black", "orange", "blue",  "darkgreen", "eggplant" )
   
   df_nodes_vis <- df_nodes %>% 
     rename(id = name) %>% 

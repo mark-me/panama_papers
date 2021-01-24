@@ -13,14 +13,23 @@ source("plot_graph_functions.R")
 server <- function(input, output) {
   
   con <- dbConnect(RSQLite::SQLite(), paste0(config$dir_data, "panama_papers.sqlite"))
-  df_graph_summaries <- dbReadTable(con, "graph_summaries")
+  df_graph_summaries <- dbReadTable(con, "graph_summaries") %>% 
+    filter(qty_nodes < 120)
   dbDisconnect(con)  
   
-  output$df_summaries <- renderDT(df_graph_summaries)
+  output$df_summaries <- renderDT(df_graph_summaries %>% 
+                                    select(id = id_graph,
+                                           Source = name_source,
+                                           `# Companies` = qty_companies,
+                                           `# Dutch` = qty_dutch,
+                                           `# Belgian` = qty_belgian,
+                                           `# UK` = qty_uk), 
+                                  selection = 'single', rownames = FALSE)
   
   # Showing a network of entities
   output$network <- renderVisNetwork({
-    plot_network(20339)
+    id_graph <- df_graph_summaries[input$df_summaries_rows_selected, 1]
+    plot_network(id_graph)
   })
   
 }
@@ -31,12 +40,12 @@ ui <- fluidPage(
   
   sidebarLayout(
     
-    sidebarPanel("sidebar panel"),
+    sidebarPanel(
+      h3("Available structures"),
+      dataTableOutput("df_summaries")
+    ),
     
     mainPanel(
-      
-      dataTableOutput("df_summaries"),
-      
       visNetworkOutput("network")
     )
   )
@@ -115,7 +124,7 @@ plot_network <- function(id_graph){
   df_nodes_vis <- prettify_nodes(lst_df$df_nodes)
   df_edges_vis <- prettify_edges(lst_df$df_edges)
   
-  # Remove country nodes of entities which have an associated address (the country will show up at the adress anyway)
+  # Remove country nodes of entities which have an associated address (the country will show up at the address anyway)
   id_country_superfluous <- (df_nodes_vis %>% 
                                filter(is_country == 1) %>% 
                                inner_join(df_edges_vis, by = c("id"="to")) %>% 

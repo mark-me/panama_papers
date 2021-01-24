@@ -24,6 +24,7 @@ library(yaml)
 library(igraph)
 library(visNetwork)
 if (!require("DT")) install.packages('DT')
+if(!require("RSQLite")) install.packages("RSQLite")
 
 source("load_panama_data.R")
 source("plot_graph_functions.R")

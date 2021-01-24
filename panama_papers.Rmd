@@ -29,7 +29,7 @@ source("load_panama_data.R")
 source("plot_graph_functions.R")
 invisible(
   list2env(
-    load_panama_papers(read_raw_data = TRUE),
+    load_panama_papers(read_raw_data = FALSE),
     .GlobalEnv
   ))
 ```

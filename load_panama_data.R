@@ -1,4 +1,6 @@
 library(yaml)
+library(DBI)
+library(RSQLite)
 config <- read_yaml("config.yml")
 
 load_panama_papers <- function(read_raw_data = TRUE, only_graph_data = TRUE){
@@ -7,27 +9,37 @@ load_panama_papers <- function(read_raw_data = TRUE, only_graph_data = TRUE){
 
     df_nodes <- load_nodes()
     df_edges <- load_edges(df_nodes)
-    df_nodes <- add_country_nodes(df_nodes) # Add countries as separate nodes
+    df_nodes <- add_country_nodes(df_nodes)           # Add countries as separate nodes
     df_edges <- add_country_edges(df_edges, df_nodes) # Connect country nodes to their originating nodes
   
-    write_feather(df_nodes, paste0(config$dir_data, "nodes.feather"))
-    write_feather(df_edges, paste0(config$dir_data, "edges.feather"))
-
-    # Create list of graphs and a data frame with their summaries 
+    # Create list of graphs and enriched nodes and edges data frames and a summary data frame
     lst_output <- create_graphs(df_nodes, df_edges)
     lst_graphs <- lst_output$lst_graphs
+    df_nodes <- lst_output$df_nodes
+    df_edges <- lst_output$df_edges
     df_graph_summaries <- lst_output$df_graph_summaries
+    
+    # Writing results to a SQLite database ----
+    con <- dbConnect(RSQLite::SQLite(), paste0(config$dir_data, "panama_papers.sqlite"))
+    dbWriteTable(con, "nodes", df_nodes, overwrite = TRUE)
+    dbWriteTable(con, "edges", df_edges, overwrite = TRUE)
+    dbWriteTable(con, "graph_summaries", df_graph_summaries, overwrite = TRUE)
+    dbDisconnect(con)  
+
+    # Write graphs to 
     write_rds(lst_graphs, paste0(config$dir_data, "list_graphs.Rds")  )
-    write_feather(df_graph_summaries, paste0(config$dir_data, "graph_summaries.feather"))
-    
+
   } else {
+
+    # Read nodes, edges and summary from SQLite database
+    con <- dbConnect(RSQLite::SQLite(), paste0(config$dir_data, "panama_papers.sqlite"))
+    df_nodes <- dbReadTable(con, "nodes")
+    df_edges <- dbReadTable(con, "edges")
+    df_graph_summaries <- dbReadTable(con, "graph_summaries")
+    dbDisconnect(con)  
     
-    df_nodes <- read_feather(paste0(config$dir_data, "nodes.feather"))
-    df_edges <- read_feather(paste0(config$dir_data, "edges.feather"))
-    
+    # Read list of graph objects from RDS
     lst_graphs <- read_rds(paste0(config$dir_data, "list_graphs.Rds"))
-    df_graph_summaries <- read_feather(paste0(config$dir_data, "graph_summaries.feather"))
-    
   }
   
   # Create a list with all data frames and return it
@@ -262,52 +274,45 @@ create_graphs <- function(df_nodes, df_edges){
   lst_graphs_decomposed <- decompose.graph(graph_panama)
   
   lst_graphs <- list(0)
-  df_graph_summaries <- data.frame(
-    id_graph = integer(),
-    name_source = character(),
-    qty_companies = integer(),
-    qty_officers = integer(),
-    qty_intermediaries = integer(),
-    qty_addresses = integer(),
-    qty_dutch = integer(),
-    qty_belgian = integer(),
-    qty_uk = integer()
-  )
+  lst_df_nodes <- list(0)
+  lst_df_edges <- list(0)
+  lst_df_summaries <- list(0)
   
   for (graph_concern in lst_graphs_decomposed){
     
-    id_graph <- length(lst_graphs) + 1
-    lst_graphs[[id_graph]] <- graph_concern
+    if(class(graph_concern) == "igraph") {
+      
+      id_graph <- length(lst_graphs) + 1
+      lst_graphs[[id_graph]] <- graph_concern
+      
+      lst_df_nodes[[id_graph]] <- as_data_frame(graph_concern, what = "vertices") %>% mutate(id_graph = id_graph)
+      lst_df_edges[[id_graph]] <- as_data_frame(graph_concern, what = "edges") %>% mutate(id_graph = id_graph)
+      lst_df_summaries[[id_graph]] <- data.frame(
+        id_graph = id_graph,
+        name_source = as.character(V(graph_concern)$id_source[1]),
+        qty_companies =  sum(V(graph_concern)$is_company),
+        qty_officers = sum(V(graph_concern)$is_officer),
+        qty_intermediaries = sum(V(graph_concern)$is_intermediary),
+        qty_address = sum(V(graph_concern)$is_address),
+        qty_dutch = sum(V(graph_concern)$is_dutch),
+        qty_belgian = sum(V(graph_concern)$is_belgian),
+        qty_uk = sum(V(graph_concern)$is_UK)
+      )
+    }
     
-    df_graph_summary <- data.frame(
-      id_graph = id_graph,
-      name_source = V(graph_concern)$id_source[1],
-      qty_companies =  sum(V(graph_concern)$is_company),
-      qty_officers = sum(V(graph_concern)$is_officer),
-      qty_intermediaries = sum(V(graph_concern)$is_intermediary),
-      qty_address = sum(V(graph_concern)$is_address),
-      qty_dutch = sum(V(graph_concern)$is_dutch),
-      qty_belgian = sum(V(graph_concern)$is_belgian),
-      qty_uk = sum(V(graph_concern)$is_UK)
-    )
-    
-    df_graph_summaries <- rbind(df_graph_summaries, df_graph_summary)
   }
-  rm(graph_concern, df_graph_summary)
+  rm(graph_concern)
   
-  df_graph_summaries %<>%
+  df_nodes_new <- do.call(rbind,lst_df_nodes) %>% filter(id_graph != 0)
+  df_edges_new <- do.call(rbind,lst_df_edges) %>% filter(id_graph != 0)
+  df_graph_summaries <- do.call(rbind,lst_df_summaries) %>% filter(id_graph != 0) %>% 
     mutate(qty_nodes = qty_companies + qty_officers + qty_intermediaries + qty_address)
   
   # Create a list with all data frames and return it
   list_objects <- list(lst_graphs = lst_graphs,
+                       df_nodes = df_nodes_new,
+                       df_edges = df_edges_new,
                        df_graph_summaries = df_graph_summaries)
   
   return(list_objects)  
-}
-
-write_decomposed_graphs <- function(lst_graphs){
-  
-  
-  lapply(lst_graphs)
-  
 }

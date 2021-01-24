@@ -27,8 +27,7 @@ server <- function(input, output) {
                                   selection = 'single', rownames = FALSE)
   
   output$selected_network <- reactive({
-    paste0("Selected network: ", 
-           ifelse(is.null(input$df_summaries_rows_selected),
+    paste0(ifelse(is.null(input$df_summaries_rows_selected),
                   "None selected",
                   paste0(df_graph_summaries[input$df_summaries_rows_selected, 1], ") ", 
                          df_graph_summaries[input$df_summaries_rows_selected, 2]))
@@ -41,6 +40,37 @@ server <- function(input, output) {
     plot_network(id_graph)
   })
   
+  # Showing data frame with selected network nodes
+  output$df_network_nodes <- renderDT({
+    id_graph <- df_graph_summaries[input$df_summaries_rows_selected, 1]
+    con <- dbConnect(RSQLite::SQLite(), paste0(config$dir_data, "panama_papers.sqlite"))
+    
+    res <- dbSendQuery(con, paste0("SELECT * FROM nodes WHERE id_graph = ", id_graph))
+    df_nodes_graph <- dbFetch(res)
+    dbClearResult(res)
+    dbDisconnect(con)
+    
+    df_nodes_graph
+  })
+  
+  # In server.R:
+  output$downloadData <- downloadHandler(
+    filename = function() {
+      paste('data-', Sys.Date(), '.csv', sep='')
+    },
+    content = function(con) {
+      id_graph <- df_graph_summaries[input$df_summaries_rows_selected, 1]
+      con <- dbConnect(RSQLite::SQLite(), paste0(config$dir_data, "panama_papers.sqlite"))
+      
+      res <- dbSendQuery(con, paste0("SELECT * FROM nodes WHERE id_graph = ", id_graph))
+      df_nodes_graph <- dbFetch(res)
+      
+      readr::write_csv2(df_nodes_graph, con)
+      
+      dbClearResult(res)
+      dbDisconnect(con)
+      }
+  )
 }
 
 ui <- fluidPage(
@@ -48,7 +78,7 @@ ui <- fluidPage(
   titlePanel(
     fluidRow(
       column(1, img(width = 64, height = 64, src = "panamapapers.png")),
-      column(8, "Panama papers"), 
+      column(8, h1("Panama papers", align = "center")), 
       column(3, img(height = 64, width = 64, src = "https://cadran-analytics.nl/wp-content/uploads/2018/10/shiny.png"))
     )
   ),
@@ -61,11 +91,17 @@ ui <- fluidPage(
     ),
     
     mainPanel(
-      textOutput("selected_network"),
-      visNetworkOutput("network", height = "800px", width = "100%")
+      h3(textOutput("selected_network")),
+      tabsetPanel(type="tabs",
+                  tabPanel("Plot", visNetworkOutput("network", height = "800px", width = "100%")),
+                  tabPanel("Table",
+                           downloadButton("downloadData", "Download..."),
+                           br(),
+                           dataTableOutput("df_network_nodes")      
+                           )
+                  )
+      )
     )
-  )
-  
 )
 
 get_graph_data <- function(id_graph){

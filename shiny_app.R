@@ -17,42 +17,42 @@ server <- function(input, output) {
     filter(qty_nodes < 120)
   dbDisconnect(con)  
   
-  output$df_summaries <- renderDT(df_graph_summaries %>% 
-                                    select(id = id_graph,
-                                           Source = name_source,
-                                           `# Companies` = qty_companies,
-                                           `# Dutch` = qty_dutch,
-                                           `# Belgian` = qty_belgian,
-                                           `# UK` = qty_uk), 
-                                  selection = 'single', rownames = FALSE)
+  vis_df_graph_summaries <- df_graph_summaries %>% 
+    select(id = id_graph,
+           Source = name_source,
+           `# Companies` = qty_companies,
+           `# Dutch` = qty_dutch,
+           `# Belgian` = qty_belgian,
+           `# UK` = qty_uk)
+  
+  output$df_summaries <- renderDT(vis_df_graph_summaries, selection = 'single', rownames = FALSE)
   
   output$selected_network <- reactive({
     paste0(ifelse(is.null(input$df_summaries_rows_selected),
                   "None selected",
-                  paste0(df_graph_summaries[input$df_summaries_rows_selected, 1], ") ", 
+                  paste0(df_graph_summaries[input$df_summaries_rows_selected, 1], ") ",
                          df_graph_summaries[input$df_summaries_rows_selected, 2]))
                                         )
   })
-  
+
   # Showing a network of entities
   output$network <- renderVisNetwork({
     id_graph <- df_graph_summaries[input$df_summaries_rows_selected, 1]
     plot_network(id_graph)
   })
-  
+
   # Showing data frame with selected network nodes
   output$df_network_nodes <- renderDT({
     id_graph <- df_graph_summaries[input$df_summaries_rows_selected, 1]
     con <- dbConnect(RSQLite::SQLite(), paste0(config$dir_data, "panama_papers.sqlite"))
-    
+
     res <- dbSendQuery(con, paste0("SELECT * FROM nodes WHERE id_graph = ", id_graph))
     df_nodes_graph <- dbFetch(res)
     dbClearResult(res)
     dbDisconnect(con)
-    
     df_nodes_graph
   })
-  
+
   # In server.R:
   output$downloadData <- downloadHandler(
     filename = function() {
@@ -61,12 +61,12 @@ server <- function(input, output) {
     content = function(con) {
       id_graph <- df_graph_summaries[input$df_summaries_rows_selected, 1]
       con <- dbConnect(RSQLite::SQLite(), paste0(config$dir_data, "panama_papers.sqlite"))
-      
+
       res <- dbSendQuery(con, paste0("SELECT * FROM nodes WHERE id_graph = ", id_graph))
       df_nodes_graph <- dbFetch(res)
-      
+
       readr::write_csv2(df_nodes_graph, con)
-      
+
       dbClearResult(res)
       dbDisconnect(con)
       }
@@ -77,7 +77,7 @@ ui <- fluidPage(
   
   titlePanel(
     fluidRow(
-      column(1, img(width = 64, height = 64, src = "panamapapers.png")),
+      column(1, img(height = 64, src = "https://www.icij.org/app/themes/icij/dist/images/logo.svg")),
       column(8, h1("Panama papers", align = "center")), 
       column(3, img(height = 64, width = 64, src = "https://cadran-analytics.nl/wp-content/uploads/2018/10/shiny.png"))
     )
@@ -87,7 +87,7 @@ ui <- fluidPage(
     
     sidebarPanel(
       h3("Available structures"),
-      dataTableOutput("df_summaries")
+      DTOutput("df_summaries")
     ),
     
     mainPanel(
@@ -97,7 +97,7 @@ ui <- fluidPage(
                   tabPanel("Table",
                            downloadButton("downloadData", "Download..."),
                            br(),
-                           dataTableOutput("df_network_nodes")      
+                           dataTableOutput("df_network_nodes")
                            )
                   )
       )
@@ -153,6 +153,7 @@ prettify_nodes <- function(df_nodes){
            group = ifelse(is_company == 1, "Companies", group),
            group = ifelse(is_intermediary == 1, "Intermediaries", group))
   
+  browser()
   return(df_nodes_vis)
 }
 

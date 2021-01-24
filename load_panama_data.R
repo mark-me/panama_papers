@@ -3,7 +3,7 @@ library(DBI)
 library(RSQLite)
 config <- read_yaml("config.yml")
 
-load_panama_papers <- function(read_raw_data = TRUE, only_graph_data = TRUE){
+load_panama_papers <- function(read_raw_data = TRUE){
 
   if(read_raw_data){
 
@@ -42,20 +42,11 @@ load_panama_papers <- function(read_raw_data = TRUE, only_graph_data = TRUE){
     lst_graphs <- read_rds(paste0(config$dir_data, "list_graphs.Rds"))
   }
   
-  # Create a list with all data frames and return it
-  if(only_graph_data){
-    
-    list_df <- list(lst_graphs = lst_graphs,
-                    df_graph_summaries = df_graph_summaries)
-  } else {
-    
-    list_df <- list(df_nodes = df_nodes,
-                    df_edges = df_edges,
-                    lst_graphs = lst_graphs,
-                    df_graph_summaries = df_graph_summaries)
-  }
-  
-  
+  # Create a list with all data and return it
+  list_df <- list(df_nodes = df_nodes,
+                  df_edges = df_edges,
+                  lst_graphs = lst_graphs,
+                  df_graph_summaries = df_graph_summaries)
   return(list_df)
 }
 

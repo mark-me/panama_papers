@@ -34,8 +34,6 @@ server <- function(input, output) {
                                         )
   })
 
-  outputOptions(output, "selected_network", suspendWhenHidden = FALSE)
-  
   # Showing a network of entities
   output$network <- renderVisNetwork({
     id_graph <- df_graph_summaries[input$df_summaries_rows_selected, 1]

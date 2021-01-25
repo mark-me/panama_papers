@@ -124,10 +124,12 @@ get_graph_data <- function(id_graph){
   # Function that retrieves the data of a network
   con <- dbConnect(RSQLite::SQLite(), paste0(config$dir_data, "panama_papers.sqlite"))
   
+  # Get node data
   res <- dbSendQuery(con, paste0("SELECT * FROM nodes WHERE id_graph = ", id_graph))
   df_nodes_graph <- dbFetch(res)
   dbClearResult(res)
   
+  # Get edge data
   res <- dbSendQuery(con, paste0("SELECT * FROM edges WHERE id_graph = ", id_graph))
   df_edges_graph <- dbFetch(res)
   dbClearResult(res)
@@ -203,6 +205,7 @@ plot_network <- function(id_graph){
   df_nodes_vis %<>% filter(!id %in% id_country_superfluous)
   df_edges_vis %<>% filter(!to %in% id_country_superfluous)
   
+  # Displaying the end results
   visNetwork(df_nodes_vis, df_edges_vis,
              height = "1080px") %>% 
     visNodes(color = list(background = "lightblue", 

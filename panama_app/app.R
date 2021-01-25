@@ -78,6 +78,11 @@ server <- function(input, output) {
 
 ui <- fluidPage(
   
+  # Ensure the external CSS file is used. It is assumed to be in the www subdirectory
+  tags$head(
+    tags$link(rel = "stylesheet", type = "text/css", href = "custom-release.css")
+  ),
+  
   # Displaying the dashboard header
   titlePanel(
     fluidRow(

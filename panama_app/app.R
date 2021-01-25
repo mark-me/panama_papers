@@ -12,8 +12,7 @@ config <- read_yaml("config.yml")
 server <- function(input, output) {
   
   con <- dbConnect(RSQLite::SQLite(), paste0(config$dir_data, "panama_papers.sqlite"))
-  df_graph_summaries <- dbReadTable(con, "graph_summaries") %>% 
-    filter(qty_nodes < 120)
+  df_graph_summaries <- dbReadTable(con, "graph_summaries") %>% filter(qty_nodes <= 200)
   dbDisconnect(con)  
   
   vis_df_graph_summaries <- df_graph_summaries %>% 
@@ -28,12 +27,14 @@ server <- function(input, output) {
   
   output$selected_network <- reactive({
     paste0(ifelse(is.null(input$df_summaries_rows_selected),
-                  "None selected",
+                  "Select a network from the table",
                   paste0(df_graph_summaries[input$df_summaries_rows_selected, 1], ") ",
                          df_graph_summaries[input$df_summaries_rows_selected, 2]))
                                         )
   })
 
+  outputOptions(output, "selected_network", suspendWhenHidden = FALSE)
+  
   # Showing a network of entities
   output$network <- renderVisNetwork({
     id_graph <- df_graph_summaries[input$df_summaries_rows_selected, 1]
@@ -91,15 +92,20 @@ ui <- fluidPage(
     
     mainPanel(
       h3(textOutput("selected_network")),
-      tabsetPanel(type="tabs",
-                  tabPanel("Plot", visNetworkOutput("network", height = "800px", width = "100%")),
-                  tabPanel("Table",
-                           downloadButton("downloadData", "Download..."),
-                           br(),
-                           DTOutput("df_network_nodes")
-                           )
-                  )
+      conditionalPanel(
+        condition = "output.selected_network != \"Select a network from the table\"",
+        tabsetPanel(type="tabs",
+                    tabPanel("Plot", 
+                             visNetworkOutput("network", height = "800px", width = "100%")),
+                    tabPanel("Table",
+                             downloadButton("downloadData", "Download..."),
+                             br(),
+                             DTOutput("df_network_nodes")
+                    ) 
+        )
       )
+    )
+      
     )
 )
 

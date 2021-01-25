@@ -8,7 +8,7 @@ library(DT)
 library(DBI)
 library(yaml)
 
-# Reading the input
+# Reading the config
 config <- read_yaml("config.yml")
 
 server <- function(input, output) {

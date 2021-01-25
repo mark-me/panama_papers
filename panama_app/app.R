@@ -127,7 +127,7 @@ prettify_nodes <- function(df_nodes){
   
   df_nodes_vis <- df_nodes %>% 
     rename(id = name) %>% 
-    mutate(label = ifelse(is_country == 1, country, NA),
+    mutate(label = ifelse(is_country == 1, country, name_node),
            label = ifelse(is_address == 1, "", label),
            title = ifelse(is_address == 1, address, NA),
            title = ifelse(is_company == 1, paste(paste0("Type: ", company_type),

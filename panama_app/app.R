@@ -86,7 +86,7 @@ ui <- fluidPage(
   # Displaying the dashboard header
   titlePanel(
     fluidRow(
-      column(1, img(height = 64, src = "https://www.icij.org/app/themes/icij/dist/images/logo.svg")),
+      column(1, img(height = 56, src = "https://hovingh.eu/resources/content/client_logo_72_graydon-logo-transparant.png")),
       column(8, h1("Panama papers", align = "center")), 
       column(3, img(height = 64, width = 64, src = "https://cadran-analytics.nl/wp-content/uploads/2018/10/shiny.png"))
     )

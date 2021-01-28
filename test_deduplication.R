@@ -12,7 +12,11 @@ df_nodes_graph <- df_nodes %>%
 
 screen_duplicates(df_nodes_graph)
 
-matches <- find_duplicates(df_nodes_graph, match_variable = "name_node")
+idx_matches <- find_duplicates(df_nodes_graph, match_variable = "name_node")
+df_matches <- cbind(df_nodes_graph[idx_matches, c("name_node", "name")] %>% 
+                      select(name_unique = name, name_node_unique = name_node), 
+                    df_nodes_graph[, c("name_node", "name")] %>% 
+                      select(name_original = name, name_node_original = name_node))
 
 con <- dbConnect(RSQLite::SQLite(), paste0(config$dir_data, "panama_papers.sqlite"))
 dbWriteTable(con, "matches", matches, overwrite = TRUE)

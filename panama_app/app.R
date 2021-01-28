@@ -21,7 +21,7 @@ server <- function(input, output) {
   vis_df_graph_summaries <- df_graph_summaries %>% 
     select(id = id_graph,
            Source = name_source,
-           `# Companies` = qty_companies,
+           `# Entities` = qty_nodes,
            `# Dutch` = qty_dutch,
            `# Belgian` = qty_belgian,
            `# UK` = qty_uk)
@@ -86,7 +86,7 @@ ui <- fluidPage(
   # Displaying the dashboard header
   titlePanel(
     fluidRow(
-      column(1, img(height = 56, src = "https://hovingh.eu/resources/content/client_logo_72_graydon-logo-transparant.png")),
+      column(1, img(height = 48, src = "https://hovingh.eu/resources/content/client_logo_72_graydon-logo-transparant.png")),
       column(8, h1("Panama papers", align = "center")), 
       column(3, img(height = 64, width = 64, src = "https://cadran-analytics.nl/wp-content/uploads/2018/10/shiny.png"))
     )

@@ -43,7 +43,7 @@ plot_leaks_graph <- function(graph){
   
   # Remove country nodes of entities which have an associated address (the country will show up at the adress anyway)
   id_country_superfluous <- (df_nodes_vis %>% 
-                               filter(is_country) %>% 
+                               filter(is_country == 1) %>% 
                                inner_join(df_edges_vis, by = c("id"="to")) %>% 
                                select(id_node_country = id, 
                                       id_node_entity = from) %>% 
